@@ -5,8 +5,11 @@ Local environment: Windows 11, Blender **5.1.1**, Python **3.12.10**, MCP Python
 Executed, not inferred:
 
 - `uv run ruff check --config pyproject.toml .` — passed.
-- Full pytest suite with `BLENDER_EXE` and `BLENDER_TEST_UI=1` — **24 passed**, no skips.
+- Full pytest suite with `BLENDER_EXE` and `BLENDER_TEST_UI=1` — **24 passed**, no skips;
+  subsequently added isolated ZIP-install smoke test — **1 passed** (25 tests verified in total).
 - Add-on ZIP packaging and Python wheel/sdist build — passed.
+- Actual ZIP installation into an isolated Blender scripts directory, enable, timer registration,
+  start/stop, descriptor removal and disable — passed.
 - Separate real Blender background process: registration, scene inspection, operation discovery,
   syntax prevalidation, dry run, partial failure reporting, authenticated request replay,
   linked-copy material isolation, deletion confirmation, path validation, read-only enforcement,
