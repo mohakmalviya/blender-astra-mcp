@@ -1,4 +1,4 @@
-# Blender Compact MCP
+# Blender Compact MCP for Astra
 
 Four tools for Blender: **inspect**, **discover**, **execute**, **capture**.
 Batch related edits, fetch operation arguments only when needed, and return bounded summaries.
