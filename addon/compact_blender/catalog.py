@@ -1,5 +1,7 @@
 """Small operation vocabulary; only discovered schemas enter the agent context."""
 
+from .extended import OPERATIONS
+
 CATALOG = {
     "primitive": {
         "summary": "Create a managed mesh",
@@ -71,9 +73,15 @@ CATALOG = {
     },
 }
 
+CATALOG.update(OPERATIONS)
+for entry in CATALOG.values():
+    entry["summary"] = entry["summary"].replace("managed ", "")
+    entry["args"] = {k: v.replace("managed ", "") for k, v in entry["args"].items()}
+
 PERMISSIONS = {
     name: ("delete" if name == "delete" else "save" if name == "save" else "write") for name in CATALOG
 }
+PERMISSIONS.update(python="python", render="render", rna=None)
 
 
 def discover(operation=None):

@@ -7,7 +7,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 root = Path(__file__).resolve().parents[1]
 dist = root / "dist"
 dist.mkdir(exist_ok=True)
-target = dist / "compact_blender-0.1.0.zip"
+target = dist / "compact_blender-0.2.0.zip"
 with ZipFile(target, "w", ZIP_DEFLATED) as archive:
     for path in sorted((root / "addon/compact_blender").glob("*.py")):
         archive.write(path, f"compact_blender/{path.name}")

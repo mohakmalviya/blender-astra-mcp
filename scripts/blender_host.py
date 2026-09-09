@@ -27,7 +27,7 @@ bpy.ops.mesh.primitive_cube_add(location=(1000, 1000, 1000))
 bpy.context.object.name = "UnmanagedSentinel"
 compact_blender.register()
 server = compact_blender.start(
-    args.output, args.connection, ("write", "render", "save", "delete"), timer=False
+    args.output, args.connection, ("write", "render", "save", "delete", "python"), timer=False
 )
 readonly = Server(
     Engine(Path(args.output) / "readonly", ()), Path(args.connection).with_name("readonly.json")

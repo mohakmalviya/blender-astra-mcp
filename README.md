@@ -5,34 +5,34 @@ Batch related edits, fetch operation arguments only when needed, and return boun
 
 ![50 managed cubes created in a batch and rendered in Blender](examples/demo.png)
 
-This is an early working release, tested on **Windows 11 with Blender 5.1.1**. Blender 4.2+
-is the intended API target; other Blender versions and operating systems are not yet runtime-verified.
-There is no hosted model, telemetry, model API key, or arbitrary Python execution endpoint.
+Version 0.2 adds existing-scene editing and an unrestricted Python operation for the full
+Blender API, while keeping four MCP tools and on-demand operation discovery.
 
 ## What works
 
-- Cube, sphere, plane, cylinder and cone creation.
-- Transforms, Principled materials and material assignment.
-- Linked arrays: create up to 200 copies in one operation.
-- Cameras, lights, camera rendering and `.blend` copy export.
-- Four small MCP tools and a CLI using the same authenticated operation path.
-- Independent write, render, delete and save permissions, fixed when the server starts.
-- Editing restricted to objects/materials tagged by this add-on. Existing untagged objects can be inspected.
-- Interactive Undo checkpoints for batches; partial runtime failures are explicit.
+- Existing object transforms and material editing, primitives, linked arrays, cameras and lights.
+- Batched modifiers, RNA properties, keyframes, frame evaluation and RNA discovery.
+- Full Python access for Geometry Nodes, rigging, simulations, import/export and other bpy workflows.
+  Discover `python`, then execute `{"op":"python","code":"..."}`. Assign `result` for a bounded JSON
+  response; `bpy`, `params` and `output_dir` are available in the script.
+- Camera or interactive viewport previews; `render` uses current scene resolution and supports animation.
+- Independent write/render/delete/save toggles and an additional Python toggle, fixed at bridge start.
+  **Python is unrestricted local code execution and can bypass all the narrower toggles.** It defaults off.
+- Interactive undo checkpoints and explicit partial batch errors. Long operations block Blender;
+  the MCP execute timeout is configurable and does not cancel work.
 
-Geometry Nodes, animation, arbitrary scene editing, viewport captures and custom Python recipes are
-**not implemented in v0.1**. `capture` renders the active camera, using Cycles at 16 samples,
-then restores the temporary render settings. It blocks Blender while rendering.
+The new capabilities are not fully validated. External asset-provider integrations are not bundled.
+The historical benchmark below measures batching only; no cross-product token comparison is available yet.
 
 ## Quick start
 
 Requirements: Blender, Python 3.11+ and [uv](https://docs.astral.sh/uv/).
 
-1. Download `compact_blender-0.1.0.zip` from this repository's Releases.
+1. Download `compact_blender-0.2.0.zip` from this repository's Releases.
 2. In Blender, open **Edit → Preferences → Add-ons → Install from Disk**, choose the ZIP and enable
    **Compact Blender MCP**.
 3. In the 3D Viewport sidebar (`N`), open **Compact MCP**. Review permissions and click **Start bridge**.
-   Write and render default on; delete and save default off. Stop/restart to change permissions.
+   Write and render default on; delete, save and Python default off. Enable Python for full API access. Stop/restart to change permissions.
 4. Clone this repository and run `uv sync --frozen` inside it.
 5. Add the MCP command below to your client. Use an absolute path to your checkout:
 
@@ -113,7 +113,7 @@ CLI ----------------------------------------------^                        bpy.a
 ```
 
 Blender's timer accepts bounded socket input and executes operations on its main thread. No Python
-background thread accesses Blender data. There are no shell or eval endpoints. `discover` returns
+background thread accesses Blender data. The optional Python operation has full local process privileges. `discover` returns
 human-readable argument contracts; operations are validated again by the add-on before execution.
 See [design](docs/design.md) and [security](SECURITY.md).
 

@@ -11,7 +11,7 @@ mcp = FastMCP(
     "blender-compact",
     instructions=(
         "Discover an operation before use. Batch related edits. Inspect narrowly; capture only when visual feedback "
-        "is needed. Only managed objects may be edited. Partial batch failures persist; inspect before retrying."
+        "is needed. Existing scenes are editable. Discover python for full bpy access (must be enabled in Blender). Partial batch failures persist; inspect before retrying."
     ),
 )
 
@@ -33,19 +33,23 @@ def discover(operation: str | None = None) -> str:
 
 
 @mcp.tool()
-def execute(steps: list[dict], dry_run: bool = False) -> str:
+def execute(steps: list[dict], dry_run: bool = False, timeout: int = 180) -> str:
     """Execute up to 100 {'op': name, ...arguments} steps. Returns counts/errors, not full scene data.
 
     dry_run checks syntax/permissions only. Runtime failures are partial, not transactional.
     """
-    return compact(Client().call("execute", {"steps": steps, "dry_run": dry_run}))
+    if not 1 <= timeout <= 86400:
+        raise ValueError("timeout must be 1..86400 seconds; timeout does not cancel Blender work")
+    return compact(Client().call("execute", {"steps": steps, "dry_run": dry_run}, timeout=timeout))
 
 
 @mcp.tool()
-def capture(size: int = 512) -> Image:
-    """Render the active camera as a PNG (64..1024 square). Blocks Blender while rendering."""
+def capture(size: int = 512, view: str = "camera") -> Image:
+    """PNG preview (64..1024): camera render or viewport (requires interactive 3D View)."""
     client = Client()
-    result = client.call("capture", {"filename": f"preview-{uuid.uuid4().hex}.png", "size": size})
+    result = client.call(
+        "capture", {"filename": f"preview-{uuid.uuid4().hex}.png", "size": size, "view": view}
+    )
     return Image(path=str(client.image_path(result["file"])))
 
 

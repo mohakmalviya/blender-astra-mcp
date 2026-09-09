@@ -103,15 +103,15 @@ def test_delete_confirmation_and_path_validation(blender):
     assert result["ok"] is False
 
 
-def test_unmanaged_objects_cannot_be_changed(blender):
+def test_existing_objects_can_be_changed(blender):
     result = blender.call(
         "execute", {"steps": [{"op": "transform", "name": "UnmanagedSentinel", "location": [0, 0, 0]}]}
     )
-    assert result["ok"] is False
+    assert result["ok"] is True
     assert blender.call("inspect", {"names": ["UnmanagedSentinel"]})["objects"][0]["location"] == [
-        1000,
-        1000,
-        1000,
+        0,
+        0,
+        0,
     ]
 
 

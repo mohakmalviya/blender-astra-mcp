@@ -27,15 +27,15 @@ def vector(value, length=3):
 
 
 def name(value):
-    if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_. -]{0,62}", value):
-        raise ValueError("Name must be 1..63 ASCII letters, numbers, spaces, _, . or -; start with letter")
+    if not isinstance(value, str) or not value or "\x00" in value or len(value.encode("utf-8")) > 255:
+        raise ValueError("Name must be nonempty UTF-8 text, at most 255 bytes, without NUL")
     return value
 
 
 def owned(value):
     obj = bpy.data.objects.get(name(value))
-    if obj is None or obj.get(OWNER) is not True:
-        raise ValueError(f"Not a managed object: {value}")
+    if obj is None:
+        raise ValueError(f"Object not found: {value}")
     if obj.name not in bpy.context.scene.objects:
         raise ValueError("Object is outside the active scene")
     return obj
@@ -63,6 +63,10 @@ def validate_step(step):
     extra = set(step) - {"op"} - set(CATALOG[op]["args"])
     if extra:
         raise ValueError(f"Unknown arguments: {sorted(extra)}")
+    from .extended import validate
+
+    if validate(op, step):
+        return
     required = {
         "primitive": ["name", "kind"],
         "transform": ["name"],
@@ -179,11 +183,11 @@ class Engine:
         # Existence checks remain per-operation to permit references to earlier creations.
         for step in steps:
             validate_step(step)
-            if PERMISSIONS[step["op"]] not in self.permissions:
+            if PERMISSIONS[step["op"]] is not None and PERMISSIONS[step["op"]] not in self.permissions:
                 raise PermissionError(f"Disabled permission: {PERMISSIONS[step['op']]}")
         if sum(s.get("count", 1) for s in steps) > 500:
             raise ValueError("Batch expands to more than 500 operations")
-        if bpy.context.mode != "OBJECT":
+        if bpy.context.mode != "OBJECT" and any(s["op"] not in ("python", "frame", "rna") for s in steps):
             raise ValueError("Switch Blender to Object Mode first")
         if dry_run:
             return {"validated": len(steps), "executed": 0, "scope": "syntax and permissions only"}
@@ -208,6 +212,8 @@ class Engine:
                 changed += result.get("changed", 0)
                 if "file" in result:
                     results.append(result)
+                if "result" in result:
+                    results.append({"index": index, "result": result["result"]})
                 completed += 1
             except Exception as exc:
                 return {
@@ -219,10 +225,20 @@ class Engine:
                     "atomic": False,
                     "note": "Earlier operations persist; failed operation may have partial effects.",
                 }
-        return {"ok": True, "completed": completed, "changed": changed, "files": results}
+        files = [r for r in results if "file" in r]
+        response = {"ok": True, "completed": completed, "changed": changed, "files": files}
+        values = [r for r in results if "result" in r]
+        if values:
+            response["results"] = values
+        return response
 
     def step(self, s):
         op = s["op"]
+        from .extended import run
+
+        result = run(self, s)
+        if result is not None:
+            return result
         if op in ("primitive", "light", "camera") and s["name"] in bpy.data.objects:
             raise ValueError(f"Object already exists: {s['name']}")
         if op == "primitive":
@@ -244,8 +260,6 @@ class Engine:
                     setattr(obj, attr, s[key])
         elif op == "material":
             mat = bpy.data.materials.get(s["name"])
-            if mat and mat.get(OWNER) is not True:
-                raise ValueError("Existing material is not managed")
             mat = mat or bpy.data.materials.new(s["name"])
             mat[OWNER] = True
             mat.use_nodes = True
@@ -257,8 +271,8 @@ class Engine:
         elif op == "assign_material":
             obj = owned(s["name"])
             mat = bpy.data.materials.get(s["material"])
-            if obj.type != "MESH" or mat is None or mat.get(OWNER) is not True:
-                raise ValueError("Need managed mesh and managed material")
+            if obj.type != "MESH" or mat is None:
+                raise ValueError("Need mesh and existing material")
             # Array copies share mesh data. Detach before changing material slots.
             if obj.data.users > 1:
                 obj.data = obj.data.copy()
@@ -305,13 +319,17 @@ class Engine:
             return {"changed": 0, "file": path.name}
         return {"changed": 1}
 
-    def capture(self, filename="preview.png", size=512):
+    def capture(self, filename="preview.png", size=512, view="camera"):
         if "render" not in self.permissions:
             raise PermissionError("Disabled permission: render")
         if type(size) is not int or not 64 <= size <= 1024:
             raise ValueError("size must be an integer from 64 to 1024")
         scene = bpy.context.scene
-        if scene.camera is None:
+        if view not in ("camera", "viewport"):
+            raise ValueError("view must be camera or viewport")
+        if view == "viewport" and bpy.app.background:
+            raise ValueError("Viewport capture requires interactive Blender")
+        if view == "camera" and scene.camera is None:
             raise ValueError("Scene has no active camera")
         path = output_file(self.output_dir, filename, ".png")
         render = scene.render
@@ -334,7 +352,15 @@ class Engine:
             render.resolution_percentage = 100
             render.image_settings.file_format = "PNG"
             render.use_file_extension = True
-            bpy.ops.render.render(write_still=True)
+            if view == "camera":
+                bpy.ops.render.render(write_still=True)
+            else:
+                area = next((a for a in bpy.context.screen.areas if a.type == "VIEW_3D"), None)
+                if area is None:
+                    raise ValueError("Open a 3D Viewport first")
+                region = next(r for r in area.regions if r.type == "WINDOW")
+                with bpy.context.temp_override(area=area, region=region):
+                    bpy.ops.render.opengl(write_still=True, view_context=True)
             if not path.is_file():
                 raise RuntimeError("Render did not produce a PNG")
             return {"file": path.name, "width": size, "height": size, "bytes": path.stat().st_size}

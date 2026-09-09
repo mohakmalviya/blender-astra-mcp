@@ -12,7 +12,7 @@ result = bpy.ops.preferences.addon_install(filepath=zip_path)
 assert result == {"FINISHED"}, result
 addon_utils.enable("compact_blender", default_set=False)
 module = importlib.import_module("compact_blender")
-assert module.bl_info["version"] == (0, 1, 0)
+assert module.bl_info["version"] == (0, 2, 0)
 server = module.start(Path(scratch) / "exports", Path(scratch) / "connection.json")
 callback = module._timer
 assert bpy.app.timers.is_registered(callback)
