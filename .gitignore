@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+artifacts/
+*.blend1
+*.token
+connection*.json
+.env
+.DS_Store

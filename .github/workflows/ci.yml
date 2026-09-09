@@ -1,0 +1,27 @@
+name: Checks
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  checks:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.13"
+          python-version: "3.12"
+      - run: uv sync --frozen
+      - run: uv run ruff check --config pyproject.toml .
+      - run: uv run ruff format --check --config pyproject.toml .
+      # Explicitly skips Blender-dependent tests. Real local Blender results are in docs/validation.md.
+      - run: uv run pytest -q
+      - run: uv run python scripts/package_addon.py
+      - run: uv build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: packages-${{ matrix.os }}
+          path: dist/

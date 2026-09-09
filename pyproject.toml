@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "blender-compact-mcp"
+version = "0.1.0"
+description = "Four-tool Blender bridge with batched operations and bounded results"
+requires-python = ">=3.11"
+dependencies = ["mcp>=1.20,<2"]
+
+[project.scripts]
+blender-compact-mcp = "compact_mcp.server:main"
+blender-compact = "compact_mcp.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "ruff>=0.12", "tiktoken>=0.9"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/compact_mcp"]
+
+[tool.ruff]
+line-length = 110
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

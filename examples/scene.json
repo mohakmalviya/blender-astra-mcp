@@ -1,0 +1,244 @@
+{
+  "steps": [
+    {
+      "op": "material",
+      "name": "Teal",
+      "color": [
+        0.03,
+        0.5,
+        0.38,
+        1
+      ],
+      "metallic": 0.3,
+      "roughness": 0.25
+    },
+    {
+      "op": "material",
+      "name": "GroundMat",
+      "color": [
+        0.08,
+        0.1,
+        0.14,
+        1
+      ],
+      "roughness": 0.8
+    },
+    {
+      "op": "primitive",
+      "kind": "cube",
+      "name": "Tile0",
+      "location": [
+        -5.4,
+        -2.4,
+        0.4
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.4
+      ]
+    },
+    {
+      "op": "assign_material",
+      "name": "Tile0",
+      "material": "Teal"
+    },
+    {
+      "op": "array",
+      "name": "Tile0",
+      "count": 9,
+      "offset": [
+        1.2,
+        0,
+        0
+      ],
+      "prefix": "Row0"
+    },
+    {
+      "op": "primitive",
+      "kind": "cube",
+      "name": "Tile1",
+      "location": [
+        -5.4,
+        -1.2,
+        0.5
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.5
+      ]
+    },
+    {
+      "op": "assign_material",
+      "name": "Tile1",
+      "material": "Teal"
+    },
+    {
+      "op": "array",
+      "name": "Tile1",
+      "count": 9,
+      "offset": [
+        1.2,
+        0,
+        0
+      ],
+      "prefix": "Row1"
+    },
+    {
+      "op": "primitive",
+      "kind": "cube",
+      "name": "Tile2",
+      "location": [
+        -5.4,
+        0.0,
+        0.6000000000000001
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.6000000000000001
+      ]
+    },
+    {
+      "op": "assign_material",
+      "name": "Tile2",
+      "material": "Teal"
+    },
+    {
+      "op": "array",
+      "name": "Tile2",
+      "count": 9,
+      "offset": [
+        1.2,
+        0,
+        0
+      ],
+      "prefix": "Row2"
+    },
+    {
+      "op": "primitive",
+      "kind": "cube",
+      "name": "Tile3",
+      "location": [
+        -5.4,
+        1.2,
+        0.7000000000000001
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.7000000000000001
+      ]
+    },
+    {
+      "op": "assign_material",
+      "name": "Tile3",
+      "material": "Teal"
+    },
+    {
+      "op": "array",
+      "name": "Tile3",
+      "count": 9,
+      "offset": [
+        1.2,
+        0,
+        0
+      ],
+      "prefix": "Row3"
+    },
+    {
+      "op": "primitive",
+      "kind": "cube",
+      "name": "Tile4",
+      "location": [
+        -5.4,
+        2.4,
+        0.8
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.8
+      ]
+    },
+    {
+      "op": "assign_material",
+      "name": "Tile4",
+      "material": "Teal"
+    },
+    {
+      "op": "array",
+      "name": "Tile4",
+      "count": 9,
+      "offset": [
+        1.2,
+        0,
+        0
+      ],
+      "prefix": "Row4"
+    },
+    {
+      "op": "primitive",
+      "kind": "plane",
+      "name": "Ground",
+      "scale": [
+        200,
+        200,
+        1
+      ]
+    },
+    {
+      "op": "assign_material",
+      "name": "Ground",
+      "material": "GroundMat"
+    },
+    {
+      "op": "camera",
+      "name": "DemoCamera",
+      "location": [
+        12,
+        -15,
+        13
+      ],
+      "target": [
+        0,
+        0,
+        0.5
+      ],
+      "lens": 48
+    },
+    {
+      "op": "light",
+      "name": "Key",
+      "location": [
+        0,
+        -5,
+        10
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "energy": 2000,
+      "size": 8
+    },
+    {
+      "op": "light",
+      "name": "Rim",
+      "location": [
+        0,
+        6,
+        8
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "energy": 2500,
+      "size": 6
+    }
+  ]
+}

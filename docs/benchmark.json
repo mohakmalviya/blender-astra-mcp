@@ -1,0 +1,27 @@
+{
+  "method": "Same 50 transforms, same bridge and Blender state, 50 calls versus one batch",
+  "tokenizer": "cl100k_base",
+  "blender": "5.1.1",
+  "equivalent_final_state": true,
+  "individual": {
+    "calls": 50,
+    "input_tokens": 1149,
+    "output_tokens": 800
+  },
+  "batched": {
+    "calls": 1,
+    "input_tokens": 1002,
+    "output_tokens": 16
+  },
+  "excluded": [
+    "model reasoning",
+    "system and conversation context",
+    "cached token billing",
+    "tool-call envelopes",
+    "image tokens",
+    "initial setup",
+    "discovery"
+  ],
+  "limitation": "Protocol payload microbenchmark; not measured savings against another MCP or an LLM session",
+  "payload_reduction_percent": 47.77
+}
