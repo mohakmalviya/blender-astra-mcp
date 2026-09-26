@@ -44,11 +44,16 @@ def execute(steps: list[dict], dry_run: bool = False, timeout: int = 180) -> str
 
 
 @mcp.tool()
-def capture(size: int = 512, view: str = "camera") -> Image:
-    """PNG preview (64..1024): camera render or viewport (requires interactive 3D View)."""
+def capture(size: int = 512, view: str = "camera", engine: str | None = None) -> Image:
+    """PNG preview (64..1024): camera render or viewport (requires interactive 3D View).
+
+    Defaults to EEVEE for fast, reliable previews. Pass engine="CYCLES" for
+    ray-traced quality (much slower, and dark on scenes without world lighting).
+    """
     client = Client()
     result = client.call(
-        "capture", {"filename": f"preview-{uuid.uuid4().hex}.png", "size": size, "view": view}
+        "capture",
+        {"filename": f"preview-{uuid.uuid4().hex}.png", "size": size, "view": view, "engine": engine},
     )
     return Image(path=str(client.image_path(result["file"])))
 

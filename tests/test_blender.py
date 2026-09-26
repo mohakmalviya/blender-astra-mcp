@@ -173,6 +173,57 @@ def test_mcp_stdio_roundtrip(blender, monkeypatch):
     asyncio.run(run())
 
 
+def test_capture_defaults_to_eevee_and_renders_unlit_scene(blender):
+    # Regression: capture used to force CYCLES, which returns an almost entirely
+    # black frame on a scene with no world lighting. A preview must stay legible.
+    blender.call(
+        "execute",
+        {
+            "steps": [
+                {
+                    "op": "primitive",
+                    "kind": "cube",
+                    "name": "EeveeProbe",
+                    "location": [0, 0, 0.5],
+                },
+                {
+                    "op": "material",
+                    "name": "EeveeProbeMat",
+                    "color": [0.8, 0.3, 0.1, 1],
+                    "roughness": 0.5,
+                },
+                {"op": "assign_material", "name": "EeveeProbe", "material": "EeveeProbeMat"},
+                {
+                    "op": "camera",
+                    "name": "EeveeProbeCam",
+                    "location": [0, -6, 4],
+                    "target": [0, 0, 0.5],
+                },
+                {
+                    "op": "light",
+                    "name": "EeveeProbeKey",
+                    "location": [0, -4, 6],
+                    "target": [0, 0, 0.5],
+                    "energy": 1200,
+                    "size": 4,
+                },
+            ]
+        },
+    )
+    # No world is created anywhere in this test on purpose.
+    image = blender.call("capture", {"filename": "eevee-probe.png", "size": 256})
+    path = blender.image_path(image["file"])
+    assert path.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
+    # A black 256x256 PNG compresses far smaller than a frame containing a lit cube.
+    assert image["bytes"] > 2000
+
+    # The engine override is still honoured for callers who want ray tracing.
+    cycles = blender.call(
+        "capture", {"filename": "cycles-probe.png", "size": 128, "engine": "CYCLES"}
+    )
+    assert blender.image_path(cycles["file"]).read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
+
+
 def test_demo_render_and_save(blender):
     # Move prior test objects away, without deleting anything not created by these tests.
     rows = [o for o in blender.call("inspect", {"limit": 100})["objects"] if o["managed"]]

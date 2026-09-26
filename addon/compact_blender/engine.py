@@ -319,7 +319,7 @@ class Engine:
             return {"changed": 0, "file": path.name}
         return {"changed": 1}
 
-    def capture(self, filename="preview.png", size=512, view="camera"):
+    def capture(self, filename="preview.png", size=512, view="camera", engine=None):
         if "render" not in self.permissions:
             raise PermissionError("Disabled permission: render")
         if type(size) is not int or not 64 <= size <= 1024:
@@ -343,10 +343,18 @@ class Engine:
         )
         old = {a: getattr(render, a) for a in attrs}
         old_format = render.image_settings.file_format
+        # Cycles on an unlit scene yields a black frame. Prefer EEVEE for previews
+        # and only use Cycles when the caller explicitly asks for it.
+        if engine is None:
+            engine = "BLENDER_EEVEE_NEXT" if "BLENDER_EEVEE_NEXT" in {
+                i.identifier for i in bpy.types.RenderSettings.bl_rna.properties["engine"].enum_items
+            } else "BLENDER_EEVEE"
         try:
-            render.engine = "CYCLES"
-            samples = scene.cycles.samples
-            scene.cycles.samples = 16
+            render.engine = engine
+            samples = None
+            if render.engine == "CYCLES":
+                samples = scene.cycles.samples
+                scene.cycles.samples = 16
             render.filepath = str(path)
             render.resolution_x = render.resolution_y = size
             render.resolution_percentage = 100
@@ -365,7 +373,7 @@ class Engine:
                 raise RuntimeError("Render did not produce a PNG")
             return {"file": path.name, "width": size, "height": size, "bytes": path.stat().st_size}
         finally:
-            if "samples" in locals():
+            if samples is not None:
                 scene.cycles.samples = samples
             for attr, value in old.items():
                 setattr(render, attr, value)
